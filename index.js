@@ -1,6 +1,6 @@
 // Product Manufacturer Server setup
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 const cors = require('cors');
@@ -19,13 +19,40 @@ async function run() {
   try {
     await client.connect();
     const productCollection = client.db("productManufacturer").collection("products");
+    const orderCollection = client.db("productManufacturer").collection("orders");
     const reviewsCollection = client.db("productManufacturer").collection("reviews");
+    const usersCollection = client.db("productManufacturer").collection("users");
 
     // Load all products
     app.get("/products", async(req, res)=>{
       const products = await productCollection.find().toArray();
       res.send(products);
     })
+
+    // Load specific product by query
+    app.get("/products/:id", async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+      const result = await productCollection.findOne(query);
+      res.send(result);
+    })
+
+    // update product quantity
+    app.put("/products/:id", async(req, res)=>{
+      const id = req.params.id;
+      const data = req.body;
+      const filter = {_id: ObjectId(id)};
+      const options = { upsert: true };
+      const  updateQuantity ={
+          $set : {
+              quantity : data.quantity,
+          }
+      };     
+      const result = await productCollection.updateOne(filter, updateQuantity, options);
+      res.send(result);
+  })
+
+  
     // Load all reviews
     app.get("/reviews", async(req,res)=>{
       const reviews = await reviewsCollection.find().toArray();
