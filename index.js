@@ -36,7 +36,7 @@ async function run() {
       const result = await productCollection.findOne(query);
       res.send(result);
     })
-
+    
     // update product quantity
     app.put("/products/:id", async(req, res)=>{
       const id = req.params.id;
@@ -52,7 +52,20 @@ async function run() {
       res.send(result);
   })
 
-  
+  // order
+  app.post("/order", async(req, res)=>{
+    const orders = req.body;
+    const result = await orderCollection.insertOne(orders);
+    res.send(result);
+  })
+
+  // get ordres
+  app.get("/order", async(req, res)=>{
+    const userEmail = req.query.userEmail;
+    const query = { userEmail }
+    const orders = await orderCollection.find(query).toArray();
+    res.send(orders);
+  })
     // Load all reviews
     app.get("/reviews", async(req,res)=>{
       const reviews = await reviewsCollection.find().toArray();
