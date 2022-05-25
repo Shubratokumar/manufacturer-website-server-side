@@ -50,7 +50,19 @@ async function run() {
       };     
       const result = await productCollection.updateOne(filter, updateQuantity, options);
       res.send(result);
-  })
+  });
+
+    app.put("/user/:email", async(req, res)=>{
+      const email = req.params.email;
+      const user = req.body;
+      const filter = {email : email};
+      const options = { upsert: true };
+      const updateUser = {
+            $set : user
+      };
+      const result = await usersCollection.updateOne(filter, updateUser, options);
+      res.send(result);
+    })
 
   // order
   app.post("/order", async(req, res)=>{
