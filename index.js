@@ -39,10 +39,20 @@ async function run() {
     const reviewsCollection = client.db("productManufacturer").collection("reviews");
     const usersCollection = client.db("productManufacturer").collection("users");
 
+    const verifyAdmin = async(req, res, next) =>{
+      
+    }
+
     // Load all products
     app.get("/products", async(req, res)=>{
       const products = await productCollection.find().toArray();
       res.send(products);
+    })
+
+    app.post("/product", async(req,res)=>{
+      const product = req.body;
+      const result = await productCollection.insertOne(product);
+      res.send(result)
     })
 
     // Load specific product by query
@@ -73,15 +83,32 @@ async function run() {
        const users = await usersCollection.find().toArray();
        res.send(users);
     })
-    // Make admin role
-    app.put('/user/admin/:eamil', async(req,res)=>{
+
+    // Load Admin
+    app.get('/admin/:email', async(req, res)=>{
       const email = req.params.email;
-      const filter = {email : email};
-      const updateUser = {
-        $set : {role : "admin"},
+      const user = await usersCollection.findOne({email : email});
+      const isAdmin = user.role === "admin";
+      console.log(isAdmin);
+      res.send({admin : isAdmin});
+    })
+
+    // Make admin role
+    app.put('/user/admin/:email', async(req,res)=>{
+      const email = req.params.email;
+      const requesterEmail = req.decoded.email;
+      const requesterAccount = await usersCollection.findOne({email : requesterEmail});
+      if(requesterEmail){
+        const filter = {email : email};
+        const updateDoc = {
+          $set : {role : "admin"},
+        }
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.send(result);
       }
-      const result = await usersCollection.updateOne(filter, updateUser);
-      res.send(result);
+      else{
+        res.status(403).send({message : "Forbidden Access"})
+      }
     })
 
     // user load by email
