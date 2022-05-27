@@ -126,7 +126,7 @@ async function run() {
     })
 
     // Load Admin
-    app.get("/admin/:email", async (req, res) => {
+    app.get("/admin/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const user = await usersCollection.findOne({ email: email });
       const isAdmin = user.role === "admin";
@@ -168,6 +168,12 @@ async function run() {
       res.send({ result, token });
     });
 
+    // get all orders
+    app.get("/orders", verifyJWT, async(req,res)=>{
+      const orders = await orderCollection.find().toArray();
+      res.send(orders);
+    })
+
     // new order
     app.post("/order", async (req, res) => {
       const orders = req.body;
@@ -175,7 +181,7 @@ async function run() {
       res.send(result);
     });
 
-    // get orders
+    // get orders by email
     app.get("/order", verifyJWT, async (req, res) => {
       const userEmail = req.query.userEmail;
       const decodedEmail = req.decoded.email;
@@ -187,11 +193,19 @@ async function run() {
         return res.status(403).send({ message: "Forbidden access." });
       }
     });
+
     // Load all reviews
     app.get("/reviews", async (req, res) => {
       const reviews = await reviewsCollection.find().toArray();
       res.send(reviews);
     });
+
+    // post a review
+    app.post('/reviews', verifyJWT, async(req,res)=>{
+      const orders = req.body;
+      const result = await reviewsCollection.insertOne(orders);
+      res.send(result);
+    })
   } finally {
   }
 }
