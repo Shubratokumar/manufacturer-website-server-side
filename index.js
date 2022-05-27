@@ -51,6 +51,9 @@ async function run() {
     const usersCollection = client
       .db("productManufacturer")
       .collection("users");
+    const paymentCollection = client
+      .db("productManufacturer")
+      .collection("payment");
 
     // middleware 
     const verifyAdmin = async (req, res, next) => {
@@ -113,7 +116,7 @@ async function run() {
       res.send(result);
     });
 
-    // 
+    // create payment intent for client secret
     app.post("/create-payment-intent", verifyJWT, async(req, res)=>{
       const order = req.body;
       const price = order.price;
@@ -127,6 +130,23 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret,
       });
+    })
+
+    // patch : update order info
+    app.patch('/order/:id', verifyJWT, async(req,res)=>{
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId : payment.transactionId,
+          shipped : false,
+        } 
+      }
+      const result = await paymentCollection.insertOne(payment);
+      const updateOrder = await orderCollection.updateOne(filter, updatedDoc);
+      res.send(updateOrder);
     })
 
     // load all user
