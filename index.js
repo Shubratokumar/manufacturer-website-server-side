@@ -171,6 +171,31 @@ async function run() {
       res.send(users);
     });
 
+    // load specific user
+    app.get('/user/:email', verifyJWT, async(req,res)=>{
+      const email = req.params.email;
+      const query = {email : email};
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    })
+
+    // update user profile
+    app.put('/user/:email', verifyJWT, async(req, res)=>{
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateUser = {
+        $set: user,
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateUser,
+        options
+      );
+      res.send(result);
+    })
+
     // Delete a user
     app.delete('/user/:email', verifyJWT, async(req,res)=>{
       const email = req.params.email;
