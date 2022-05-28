@@ -149,6 +149,22 @@ async function run() {
       res.send(updateOrder);
     })
 
+    // update order status
+    app.put('/order/:id', verifyJWT, verifyAdmin, async(req,res)=>{
+      const id = req.params.id;
+      const orderStatus = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          shipped : true,
+          shippedOrderId : orderStatus.shippedOrderId,
+        } 
+      }
+      const updateOrder = await orderCollection.updateOne(filter, updatedDoc, options);
+      res.send(updateOrder);
+    })
+
     // load all user
     app.get("/user", verifyJWT, async (req, res) => {
       const users = await usersCollection.find().toArray();
