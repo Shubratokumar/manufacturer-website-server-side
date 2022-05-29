@@ -36,6 +36,8 @@ function verifyJWT(req, res, next) {
     next();
   });
 }
+
+// Database run function
 async function run() {
   try {
     await client.connect();
@@ -180,7 +182,7 @@ async function run() {
     })
 
     // update user profile
-    app.put('/user/:email', verifyJWT, async(req, res)=>{
+    app.put('/users/:email', verifyJWT, async(req, res)=>{
       const email = req.params.email;
       const user = req.body;
       const filter = { email: email };
